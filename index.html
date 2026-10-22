@@ -325,15 +325,7 @@ body{background:#000000;color:#f7f2e9}
 </main></div>
 <div class="modalback" id="modalback"><div class="modal"><button class="close" data-action="closemodal">×</button><div id="modalcontent"></div></div></div><div class="toast" id="toast"></div>
 <script>
-const videos=[
-{title:'Amapiano vibes of the week 🔥',creator:'Sbu Beats',cat:'Music',emoji:'🎧',views:'24.8K',duration:'0:28',style:''},
-{title:'When your friend says “I’m five minutes away” 😂',creator:'Mandla Makes',cat:'Comedy',emoji:'😂',views:'18.2K',duration:'0:41',style:'t2'},
-{title:'Last-minute winner! ⚽',creator:'Goal Zone',cat:'Football',emoji:'⚽',views:'41.3K',duration:'0:35',style:'t3'},
-{title:'Streetwear fit check: green edition',creator:'Nia Style',cat:'Fashion',emoji:'👟',views:'9.6K',duration:'0:22',style:'t4'},
-{title:'One simple skill you can learn today',creator:'BuildWithLee',cat:'Learning',emoji:'💡',views:'7.4K',duration:'1:12',style:'t5'},
-{title:'Sunset ride and good energy 🌅',creator:'Thando',cat:'Music',emoji:'🌅',views:'12.1K',duration:'0:19',style:'t6'},
-{title:'Try not to laugh: local edition',creator:'Laugh Lab',cat:'Comedy',emoji:'🤣',views:'31.7K',duration:'0:53',style:'t2'},
-{title:'Skills that deserve a bigger stage',creator:'Rising Talent',cat:'Football',emoji:'🏆',views:'5.1K',duration:'0:32',style:'t3'}];
+const videos=[];
 let category='All',currentVideo=videos[0];const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);
 function cards(list){return list.map((v,i)=>`<article class="video" data-video="${videos.indexOf(v)}"><div class="thumb ${v.style}">${v.emoji}<span class="play">▶ ${v.views}</span><span class="duration">${v.duration}</span></div><div class="vinfo"><div class="vtitle">${v.title}</div><div class="vcreator">${v.creator} · ${v.cat}</div></div></article>`).join('')}
 function render(){const filtered=category==='All'?videos:videos.filter(v=>v.cat===category);if($('#homegrid'))$('#homegrid').innerHTML=cards(filtered);if($('#exploregrid'))$('#exploregrid').innerHTML=cards(filtered);$('#livegrid').innerHTML=videos.slice(0,4).map((v,i)=>`<article class="video" data-video="${i}"><div class="thumb ${v.style}"><span class="livebadge">LIVE PREVIEW</span>${v.emoji}<span class="play">◉ ${['1.2K','843','2.1K','427'][i]} watching</span></div><div class="vinfo"><div class="vtitle">${v.creator} — ${v.cat} room</div><div class="vcreator">Sample live room · Not broadcasting</div></div></article>`).join('');$('#watchlist').innerHTML=videos.slice(0,5).map(v=>`<div class="listitem"><div class="miniThumb">${v.emoji}</div><div><b>${v.title}</b><small>${v.creator} · ${v.views} views</small></div></div>`).join('')}
