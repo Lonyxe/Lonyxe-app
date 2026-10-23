@@ -331,7 +331,74 @@ function cards(list){return list.map((v,i)=>`<article class="video" data-video="
 function render(){const filtered=category==='All'?videos:videos.filter(v=>v.cat===category);if($('#homegrid'))$('#homegrid').innerHTML=cards(filtered);if($('#exploregrid'))$('#exploregrid').innerHTML=cards(filtered);$('#livegrid').innerHTML=videos.slice(0,4).map((v,i)=>`<article class="video" data-video="${i}"><div class="thumb ${v.style}"><span class="livebadge">LIVE PREVIEW</span>${v.emoji}<span class="play">◉ ${['1.2K','843','2.1K','427'][i]} watching</span></div><div class="vinfo"><div class="vtitle">${v.creator} — ${v.cat} room</div><div class="vcreator">Sample live room · Not broadcasting</div></div></article>`).join('');$('#watchlist').innerHTML=videos.slice(0,5).map(v=>`<div class="listitem"><div class="miniThumb">${v.emoji}</div><div><b>${v.title}</b><small>${v.creator} · ${v.views} views</small></div></div>`).join('')}
 function toast(msg){$('#toast').textContent=msg;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),2600)}function go(page){if(!$('#'+page)){page='home'};$$('.page').forEach(p=>p.classList.toggle('active',p.id===page));$$('.navitem[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));window.scrollTo({top:0,behavior:'smooth'})}
 function modal(title,body,actionLabel='Got it',action='closemodal'){$('#modalcontent').innerHTML=`<div class="eyebrow">LONYXE</div><h2>${title}</h2>${body}<button class="btn" data-action="${action}">${actionLabel}</button>`;$('#modalback').classList.add('show')}
-function action(a){switch(a){case'upload':modal('Create on LONYXE',`<p>Choose what you want to publish. Uploads are a planned feature in this prototype.</p><label class="muted">Video title</label><input id="uploadtitle" placeholder="Give your video a great title"><label class="muted">Video type</label><select id="uploadtype"><option>Short video</option><option>Long video</option><option>Community post</option></select><p class="small">A real upload needs secure storage and a connected backend.</p>`,'Preview post','submitupload');break;case'submitupload':$('#modalback').classList.remove('show');toast('Prototype only: video upload is not connected yet.');break;case'watchdemo':go('player');setVideo(videos[0]);break;case'search':go('explore');$('#searchinput').focus();break;case'searchgo':{const q=$('#searchinput').value.toLowerCase();const found=videos.filter(v=>(v.title+' '+v.creator+' '+v.cat).toLowerCase().includes(q));$('#exploregrid').innerHTML=cards(found);toast(found.length+' sample result(s)');break}case'profile':go('profile');break;case'notifications':modal('Notifications',`<p>You’re all caught up. New likes, comments, follows and live alerts will appear here when notifications are connected.`);break;case'editprofile':modal('Edit your profile',`<label class="muted">Display name</label><input id="editname" value="${$('#profilename').textContent.replace(' ✦','')}"><label class="muted">Username</label><input id="edithandle" value="${$('#handle').textContent.replace('@','')}"><label class="muted">Bio</label><textarea id="editbio" placeholder="Tell the world about yourself"></textarea>`,'Save profile','saveprofile');break;case'saveprofile':{const n=$('#editname').value.trim(),h=$('#edithandle').value.trim().replace(/[^a-zA-Z0-9_.]/g,'');if(n)$('#profilename').innerHTML=n+' <span style="color:var(--green)">✦</span>';if(h)$('#handle').textContent='@'+h;$('#avatar').textContent=(n||'L').charAt(0).toUpperCase();$('#modalback').classList.remove('show');toast('Profile updated on this device.');break}case'verify':modal('LONYXE verification',`<p>Verification is designed to help confirm identity and protect creators from impersonation.</p><div class="notice">Paid verification is not connected yet. Before accepting payments, LONYXE needs identity review, secure payment-provider integration, clear refund terms and fraud prevention.</div><p>Planned options: identity review, badge status and renewal management.</p>`);break;case'safety':modal('Safety centre',`<p>Before public launch, LONYXE needs reporting, blocking, privacy settings, moderation, and protections for younger users.</p><button class="btn secondary" data-action="report">Report a problem</button>`);break;case'report':modal('Report a problem',`<label class="muted">What happened?</label><select><option>Harassment or bullying</option><option>Spam or scam</option><option>Impersonation</option><option>Unsafe content</option><option>Other</option></select><textarea placeholder="Tell us more"></textarea>`,'Submit demo report','reportdone');break;case'reportdone':$('#modalback').classList.remove('show');toast('Demo report noted locally; no report was sent.');break;case'startlive':modal('Go LIVE',`<p>Live broadcasting is not connected yet. A production launch needs real-time video infrastructure, moderation tools, age-appropriate safeguards and bandwidth planning.</p><label class="muted">Live title</label><input placeholder="What are you going live about?"><div class="notice">We will not show a live button as active until broadcasting works.</div>`);break;case'newmessage':modal('New conversation',`<label class="muted">Username</label><input placeholder="Search for a creator"><p>Secure direct messaging will be added after account and backend setup.</p>`);break;case'like':toast('Like preview — sign in and backend needed to save likes.');break;case'comment':modal('Comments',`<p>Be the first to start a positive conversation.</p><input placeholder="Write a comment…">`,'Post demo comment','postcomment');break;case'postcomment':$('#modalback').classList.remove('show');toast('Comment preview only; not published.');break;case'share':modal('Share this video',`<p>Invite friends to discover LONYXE.</p><input id="sharelink" readonly value="LONYXE • Your World. Your Stage."><button class="btn secondary" data-action="copyshare">Copy text</button>`);break;case'copyshare':navigator.clipboard?.writeText('LONYXE — Your World. Your Stage.').then(()=>toast('Copied!')).catch(()=>toast('Select and copy the text above.'));break;case'save':toast('Save preview — sign in needed to save videos.');break;case'follow':toast('Follow preview — accounts are not connected yet.');break;case'subscribe':toast('Subscriptions will be available when channels are connected.');break;case'playdemo':toast('Demo player: no video stream connected.');break;case'closemodal':$('#modalback').classList.remove('show');break;default:break}}
+function action(a){switch(a){ case'upload':
+modal('Create on LONYXE',`
+  <label class="muted">Video title</label>
+  <input id="uploadtitle" placeholder="Give your video a great title">
+
+  <label class="muted">Choose video</label>
+  <input id="uploadfile" type="file" accept="video/*">
+
+  <p class="small">Choose a video from your phone. Maximum size: 50 MB.</p>
+`,'Upload video','submitupload');
+break;
+
+case'submitupload': {
+  const title = $('#uploadtitle').value.trim();
+  const file = $('#uploadfile').files[0];
+
+  if (!title || !file) {
+    toast('Enter a title and choose a video.');
+    break;
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    toast('Choose a video smaller than 50 MB.');
+    break;
+  }
+
+  $('#modalback').classList.remove('show');
+  toast('Uploading video...');
+
+  (async () => {
+    try {
+      const path = Date.now() + '-' +
+        file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+      const { error: uploadError } = await lonyxeSupabase
+        .storage
+        .from('lonyxe-videos')
+        .upload(path, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = await lonyxeSupabase
+        .storage
+        .from('lonyxe-videos')
+        .createSignedUrl(path, 60 * 60 * 24);
+
+      if (!urlData?.signedUrl) {
+        throw new Error('Could not create a video link.');
+      }
+
+      const { error: saveError } = await lonyxeSupabase
+        .from('videos')
+        .insert({
+          caption: title,
+          video_url: urlData.signedUrl
+        });
+
+      if (saveError) throw saveError;
+
+      toast('Video uploaded successfully!');
+    } catch (error) {
+      console.error('LONYXE upload error:', error);
+      toast('Upload failed. Check your connection and Supabase settings.');
+    }
+  })();
+
+  break;
+ }case'watchdemo':go('player');setVideo(videos[0]);break;case'search':go('explore');$('#searchinput').focus();break;case'searchgo':{const q=$('#searchinput').value.toLowerCase();const found=videos.filter(v=>(v.title+' '+v.creator+' '+v.cat).toLowerCase().includes(q));$('#exploregrid').innerHTML=cards(found);toast(found.length+' sample result(s)');break}case'profile':go('profile');break;case'notifications':modal('Notifications',`<p>You’re all caught up. New likes, comments, follows and live alerts will appear here when notifications are connected.`);break;case'editprofile':modal('Edit your profile',`<label class="muted">Display name</label><input id="editname" value="${$('#profilename').textContent.replace(' ✦','')}"><label class="muted">Username</label><input id="edithandle" value="${$('#handle').textContent.replace('@','')}"><label class="muted">Bio</label><textarea id="editbio" placeholder="Tell the world about yourself"></textarea>`,'Save profile','saveprofile');break;case'saveprofile':{const n=$('#editname').value.trim(),h=$('#edithandle').value.trim().replace(/[^a-zA-Z0-9_.]/g,'');if(n)$('#profilename').innerHTML=n+' <span style="color:var(--green)">✦</span>';if(h)$('#handle').textContent='@'+h;$('#avatar').textContent=(n||'L').charAt(0).toUpperCase();$('#modalback').classList.remove('show');toast('Profile updated on this device.');break}case'verify':modal('LONYXE verification',`<p>Verification is designed to help confirm identity and protect creators from impersonation.</p><div class="notice">Paid verification is not connected yet. Before accepting payments, LONYXE needs identity review, secure payment-provider integration, clear refund terms and fraud prevention.</div><p>Planned options: identity review, badge status and renewal management.</p>`);break;case'safety':modal('Safety centre',`<p>Before public launch, LONYXE needs reporting, blocking, privacy settings, moderation, and protections for younger users.</p><button class="btn secondary" data-action="report">Report a problem</button>`);break;case'report':modal('Report a problem',`<label class="muted">What happened?</label><select><option>Harassment or bullying</option><option>Spam or scam</option><option>Impersonation</option><option>Unsafe content</option><option>Other</option></select><textarea placeholder="Tell us more"></textarea>`,'Submit demo report','reportdone');break;case'reportdone':$('#modalback').classList.remove('show');toast('Demo report noted locally; no report was sent.');break;case'startlive':modal('Go LIVE',`<p>Live broadcasting is not connected yet. A production launch needs real-time video infrastructure, moderation tools, age-appropriate safeguards and bandwidth planning.</p><label class="muted">Live title</label><input placeholder="What are you going live about?"><div class="notice">We will not show a live button as active until broadcasting works.</div>`);break;case'newmessage':modal('New conversation',`<label class="muted">Username</label><input placeholder="Search for a creator"><p>Secure direct messaging will be added after account and backend setup.</p>`);break;case'like':toast('Like preview — sign in and backend needed to save likes.');break;case'comment':modal('Comments',`<p>Be the first to start a positive conversation.</p><input placeholder="Write a comment…">`,'Post demo comment','postcomment');break;case'postcomment':$('#modalback').classList.remove('show');toast('Comment preview only; not published.');break;case'share':modal('Share this video',`<p>Invite friends to discover LONYXE.</p><input id="sharelink" readonly value="LONYXE • Your World. Your Stage."><button class="btn secondary" data-action="copyshare">Copy text</button>`);break;case'copyshare':navigator.clipboard?.writeText('LONYXE — Your World. Your Stage.').then(()=>toast('Copied!')).catch(()=>toast('Select and copy the text above.'));break;case'save':toast('Save preview — sign in needed to save videos.');break;case'follow':toast('Follow preview — accounts are not connected yet.');break;case'subscribe':toast('Subscriptions will be available when channels are connected.');break;case'playdemo':toast('Demo player: no video stream connected.');break;case'closemodal':$('#modalback').classList.remove('show');break;default:break}}
 function setVideo(v){currentVideo=v;$('#playtitle').textContent=v.title;$('#playcreator').textContent='@'+v.creator.toLowerCase().replace(/\s+/g,'')+' · Sample preview';go('player')}
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav){go(nav.dataset.page);return}const act=e.target.closest('[data-action]');if(act){action(act.dataset.action);return}const feed=e.target.closest('[data-feed]');if(feed){$$('[data-feed]').forEach(x=>x.classList.toggle('active',x===feed));if(feed.dataset.feed==='watch'){go('watch')}else if(feed.dataset.feed==='shorts'){category='All';render();go('player');setVideo(videos[0])}else{toast(feed.dataset.feed==='following'?'Following feed preview':'For You feed selected')}return}const cat=e.target.closest('[data-category]');if(cat){category=cat.dataset.category;$$('[data-category]').forEach(x=>x.classList.toggle('active',x.dataset.category===category));render();return}const card=e.target.closest('[data-video]');if(card){setVideo(videos[Number(card.dataset.video)]);return}});$('#modalback').addEventListener('click',e=>{if(e.target.id==='modalback')$('#modalback').classList.remove('show')});
 let lastTap=0,liked=false;
