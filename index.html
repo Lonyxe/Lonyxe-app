@@ -325,7 +325,59 @@ body{background:#000000;color:#f7f2e9}
 </main></div>
 <div class="modalback" id="modalback"><div class="modal"><button class="close" data-action="closemodal">×</button><div id="modalcontent"></div></div></div><div class="toast" id="toast"></div>
 <script>
-const videos=[];
+let videos = [];
+
+async function loadLonyxeVideos() {
+  try {
+    const { data, error } = await lonyxeSupabase
+      .from('videos')
+      .select('id, caption, video_url, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const loaded = await Promise.all((data || []).map(async item => {
+      const match = (item.video_url || '').match(
+        /\/object\/sign\/lonyxe-videos\/([^?]+)/
+      );
+
+      let url = item.video_url;
+
+      if (match) {
+        const path = decodeURIComponent(match[1]);
+
+        const { data: signed, error: signError } =
+          await lonyxeSupabase.storage
+            .from('lonyxe-videos')
+            .createSignedUrl(path, 3600);
+
+        if (signError) throw signError;
+
+        url = signed.signedUrl;
+      }
+
+      return {
+        id: item.id,
+        title: item.caption,
+        url,
+        creator: 'LONYXE Creator',
+        cat: 'Videos',
+        views: '0',
+        duration: '',
+        style: '',
+        emoji: '▶'
+      };
+    }));
+
+    videos = loaded;
+    render();
+
+    console.log('Loaded videos:', videos.length);
+  } catch (error) {
+    console.error('LONYXE video loading error:', error);
+    toast('Could not load videos from Supabase.');
+  }
+}
 let category='All',currentVideo=videos[0];const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);
 function cards(list){return list.map((v,i)=>`<article class="video" data-video="${videos.indexOf(v)}"><div class="thumb ${v.style}">${v.emoji}<span class="play">▶ ${v.views}</span><span class="duration">${v.duration}</span></div><div class="vinfo"><div class="vtitle">${v.title}</div><div class="vcreator">${v.creator} · ${v.cat}</div></div></article>`).join('')}
 function render(){const filtered=category==='All'?videos:videos.filter(v=>v.cat===category);if($('#homegrid'))$('#homegrid').innerHTML=cards(filtered);if($('#exploregrid'))$('#exploregrid').innerHTML=cards(filtered);$('#livegrid').innerHTML=videos.slice(0,4).map((v,i)=>`<article class="video" data-video="${i}"><div class="thumb ${v.style}"><span class="livebadge">LIVE PREVIEW</span>${v.emoji}<span class="play">◉ ${['1.2K','843','2.1K','427'][i]} watching</span></div><div class="vinfo"><div class="vtitle">${v.creator} — ${v.cat} room</div><div class="vcreator">Sample live room · Not broadcasting</div></div></article>`).join('');$('#watchlist').innerHTML=videos.slice(0,5).map(v=>`<div class="listitem"><div class="miniThumb">${v.emoji}</div><div><b>${v.title}</b><small>${v.creator} · ${v.views} views</small></div></div>`).join('')}
@@ -430,6 +482,9 @@ render();
   );
 
   console.log("LONYXE Supabase connection initialized.");
+
+loadLonyxeVideos();
+</script>
 </script>
 
 </body>
