@@ -349,4 +349,21 @@ render();
  setTimeout(()=>splash.classList.add('hide'),4000);
  setTimeout(()=>{splash.remove();},4600);
 })();
-</script></body></html>
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const LONYXE_SUPABASE_URL = "https://teufnekraruaffmfrirk.supabase.co";
+
+  const LONYXE_SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+  const lonyxeSupabase = window.supabase.createClient(
+    LONYXE_SUPABASE_URL,
+    LONYXE_SUPABASE_KEY
+  );
+
+  console.log("LONYXE Supabase connection initialized.");
+</script>
+
+</body>
+</html>
